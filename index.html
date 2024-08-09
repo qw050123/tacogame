@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Save Game Count</title>
+</head>
+<style>
+  * {
+    font-family: 'PingFang SC', 'Source Han Sans CN', 'Microsoft YaHei', 'STXihei', sans-serif;
+  }
+  body {
+    margin: 0;
+    background-color: rgba(200,200,200,0.3)
+  }
+  h1 {
+    text-align: center;
+  }
+  .container {
+    width: 360px;
+    margin: 60px auto 0;
+  }
+  .start-time {
+    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+  }
+  .flex-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .flex-item {
+    flex: 1;
+    font-size: 1.4rem;
+    .label {
+      font-size: 1.2rem;
+    }
+  }
+  .button-container {
+    margin-top: 40px;
+    text-align: center;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .button {
+    width: 0;
+    height: 0;
+    border-top: 45px solid transparent;
+    border-bottom: 45px solid transparent;
+    background-color: transparent;
+    cursor: pointer;
+  }
+  .give-up .button {
+    border-right: 83px solid red;
+    border-left: none;
+  }
+  .persist-in .button {
+    border-left: 83px solid blue;
+    border-right: none;
+  }
+</style>
+<body>
+  <main class="container">
+    <h1>Game Count History</h1>
+    <section>
+      <div class="start-time">
+        <span class="label">開始紀錄時間：</span>
+        <span class="time"></span>
+      </div>
+      <div class="flex-container">
+        <div class="flex-item">
+          <div class="give-up">
+            <div class="count-container now">
+              <span class="label">棄牌數：</span>
+              <span class="count">0</span>
+            </div>
+            <div class="count-container history">
+              <span class="label">歷史數：</span>
+              <span class="count">0</span>
+            </div>
+            <div class="button-container">
+              <button class="button" type="button"></button>
+            </div>
+          </div>
+        </div>
+        <div class="flex-item">
+          <div class="persist-in">
+            <div class="count-container now">
+              <span class="label">加注數：</span>
+              <span class="count">0</span>
+            </div>
+            <div class="count-container history">
+              <span class="label">歷史數：</span>
+              <span class="count">0</span>
+            </div>
+            <div class="button-container">
+              <button class="button" type="button"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+  function setCookie(name, value) {
+    const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
+    document.cookie = `${name}=${value}; expires=${expires}; path=/`;
+  }
+
+  function getCookie(name) {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      const [cookieName, cookieValue] = cookie.trim().split('=');
+      if (cookieName === name) {
+        return cookieValue;
+      }
+    }
+    return null;
+  }
+
+  function updateCookie(name, value) {
+    setCookie(name, value); // 設置 cookie
+  }
+  let giveUp = 0;
+  let persistIn = 0;
+  let historyGiveUp = 0;
+  let historyPersistIn = 0;
+  // 遊戲數值初始化
+  function initializeGameData() {
+    let startTime = getCookie('startTime');
+    if (!startTime) {
+      startTime = Date.now();
+      setCookie('startTime', startTime);
+      updateGameData('giveUp');
+      updateGameData('persistIn');
+    }
+    const date = new Date(parseInt(startTime));
+    const utc8Date = new Date(date.getTime() + (8 * 60 * 60 * 1000));
+    
+    const formattedTime = utc8Date.toISOString().slice(0, 16).replace('T', ' ');
+    document.querySelector('.start-time .time').innerText = formattedTime;
+
+    historyGiveUp = getCookie('giveUp') || 0;
+    historyPersistIn = getCookie('persistIn') || 0;
+    document.querySelector('.give-up .history .count').innerText = historyGiveUp;
+    document.querySelector('.persist-in .history .count').innerText = historyPersistIn;
+
+    return { startTime };
+  }
+
+  function updateGameData(type) {
+    if (type === 'giveUp') {
+      document.querySelector('.give-up .now .count').innerText = giveUp;
+      document.querySelector('.give-up .history .count').innerText = historyGiveUp;
+      updateCookie('giveUp', historyGiveUp);
+    } else if (type === 'persistIn') {
+      document.querySelector('.persist-in .now .count').innerText = persistIn;
+      document.querySelector('.persist-in .history .count').innerText = historyPersistIn;
+      updateCookie('persistIn', historyPersistIn);
+    }
+  }
+
+  // 使用示例
+  window.addEventListener('load', () => {
+    const { startTime } = initializeGameData();
+
+    // 更新游戏数据的示例
+    document.querySelector('.give-up .button').addEventListener('click', () => {
+      giveUp = parseInt(giveUp) + 1;
+      historyGiveUp = parseInt(historyGiveUp) + 1;
+      updateGameData('giveUp');
+    });
+
+    document.querySelector('.persist-in .button').addEventListener('click', () => {
+      persistIn = parseInt(persistIn) + 1;
+      historyPersistIn = parseInt(historyPersistIn) + 1;
+      updateGameData('persistIn');
+    });
+  });
+  </script>
+</body>
+</html>
